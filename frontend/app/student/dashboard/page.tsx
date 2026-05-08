@@ -148,16 +148,8 @@ export default function StudentDashboard() {
     load()
   }, [])
 
-  // Mock data for development
-  const mockAssignments = [
-    { _id: '1', title: 'Data Structures Final Report', status: 'inprogress', deadline: new Date(Date.now() + 2*86400000).toISOString(), budget: 2500, type: 'digital' },
-    { _id: '2', title: 'Marketing Case Study', status: 'accepted', deadline: new Date(Date.now() + 5*86400000).toISOString(), budget: 1800, type: 'digital' },
-    { _id: '3', title: 'Lab Notebook Submission', status: 'pending', deadline: new Date(Date.now() + 1*86400000).toISOString(), budget: 800, type: 'physical' },
-    { _id: '4', title: 'Software Architecture Diagram', status: 'approved', deadline: new Date(Date.now() - 2*86400000).toISOString(), budget: 3200, type: 'digital' },
-  ]
-
-  const displayAssignments = assignments.length > 0 ? assignments : mockAssignments
-  const displayStats = assignments.length > 0 ? stats : { total: 12, active: 3, completed: 8, spent: 24600 }
+ const displayAssignments = assignments
+const displayStats = stats
 
   return (
     <div className="space-y-6">
