@@ -29,6 +29,7 @@ const uploadRoutes       = require('./routes/uploads')
 // ─── App Init ────────────────────────────────────────────
 const app    = express()
 const server = http.createServer(app)
+app.set('trust proxy', 1)
 
 // ─── Socket.io ───────────────────────────────────────────
 const io = new Server(server, {
