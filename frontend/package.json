@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
+    "@types/js-cookie": "^3.0.6",
     "axios": "^1.7.2",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
