@@ -38,7 +38,7 @@ export const authAPI = {
 
   register: (data: {
     name: string; email: string; password: string;
-    role: string; city: string; university: string;
+    role: string; city: string; university?: string;
   }) => api.post('/auth/register', data),
 
   me: () => api.get('/auth/me'),
