@@ -11,7 +11,7 @@ export interface User {
   role: UserRole
   avatar?: string
   city: string
-  university: string
+  university?: string
   walletBalance: number
   rating: number
   totalReviews: number

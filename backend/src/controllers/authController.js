@@ -21,7 +21,7 @@ const sendTokenResponse = (user, statusCode, res) => {
 
 // â”€â”€â”€ POST /api/auth/register â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 exports.register = asyncHandler(async (req, res, next) => {
-  const { name, email, password, role, city, university, referralCode } = req.body
+  const { name, email, password, role, city, referralCode } = req.body
 
   // prevent admin self-registration and invalid roles
   if (role === 'admin') {
@@ -34,7 +34,7 @@ exports.register = asyncHandler(async (req, res, next) => {
   const existing = await User.findOne({ email })
   if (existing) return next(new AppError('Email already registered.', 400))
 
-  const userData = { name, email, password, role: role || 'student', city, university }
+  const userData = { name, email, password, role: role || 'student', city }
 
   // Handle referral
   if (referralCode) {

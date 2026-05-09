@@ -1,4 +1,4 @@
-﻿const mongoose  = require('mongoose')
+const mongoose  = require('mongoose')
 const bcrypt    = require('bcryptjs')
 const jwt       = require('jsonwebtoken')
 const crypto    = require('crypto')
@@ -53,7 +53,6 @@ const userSchema = new mongoose.Schema(
     },
     university: {
       type: String,
-      required: [true, 'University is required'],
       trim: true,
     },
     location: {
@@ -146,7 +145,7 @@ const userSchema = new mongoose.Schema(
 // â”€â”€â”€ Indexes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 userSchema.index({ email: 1 })
 userSchema.index({ role: 1 })
-userSchema.index({ city: 1, university: 1 })
+userSchema.index({ city: 1 })
 userSchema.index({ location: '2dsphere' })
 userSchema.index({ referralCode: 1 })
 

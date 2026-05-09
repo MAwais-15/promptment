@@ -15,7 +15,6 @@ type RegisterForm = {
   password: string
   role: 'student' | 'executor'
   city: string
-  university: string
   referralCode?: string
 }
 
@@ -213,31 +212,17 @@ export default function RegisterPage() {
               {errors.password && <p className="text-rose-500 text-xs mt-1">{errors.password.message}</p>}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-display font-medium mb-1.5" style={{ color: 'var(--text-primary)' }}>
-                  City
-                </label>
-                <input
-                  type="text"
-                  className="input-field"
-                  placeholder="e.g. Lahore"
-                  {...register('city', { required: 'City is required' })}
-                />
-                {errors.city && <p className="text-rose-500 text-xs mt-1">{errors.city.message}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-display font-medium mb-1.5" style={{ color: 'var(--text-primary)' }}>
-                  University
-                </label>
-                <input
-                  type="text"
-                  className="input-field"
-                  placeholder="e.g. LUMS"
-                  {...register('university', { required: 'University is required' })}
-                />
-                {errors.university && <p className="text-rose-500 text-xs mt-1">{errors.university.message}</p>}
-              </div>
+            <div>
+              <label className="block text-sm font-display font-medium mb-1.5" style={{ color: 'var(--text-primary)' }}>
+                City
+              </label>
+              <input
+                type="text"
+                className="input-field"
+                placeholder="e.g. Lahore"
+                {...register('city', { required: 'City is required' })}
+              />
+              {errors.city && <p className="text-rose-500 text-xs mt-1">{errors.city.message}</p>}
             </div>
 
             <div>
