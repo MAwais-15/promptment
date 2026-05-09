@@ -70,28 +70,21 @@ body {
 
   /* Brand Button */
   .btn-primary {
-    @apply relative inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-display font-semibold text-white text-sm transition-all duration-300 overflow-hidden;
+    @apply relative inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-display font-semibold text-white text-sm transition-all duration-300;
     background: linear-gradient(135deg, #6271f4, #a855f7);
     box-shadow: 0 4px 20px rgba(98, 113, 244, 0.4);
   }
 
   .btn-primary:hover {
+    background: #000000;
+    color: #ffffff;
     transform: translateY(-1px);
-    box-shadow: 0 8px 32px rgba(98, 113, 244, 0.55);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
   }
 
   .btn-primary:active {
     transform: translateY(0);
-  }
-
-  .btn-primary::before {
-    content: '';
-    @apply absolute inset-0 opacity-0 transition-opacity duration-300;
-    background: linear-gradient(135deg, #7b87f7, #b96af9);
-  }
-
-  .btn-primary:hover::before {
-    @apply opacity-100;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 
   /* Secondary Button */
@@ -104,9 +97,11 @@ body {
   }
 
   .btn-secondary:hover {
-    border-color: var(--brand);
-    color: var(--brand);
+    background: #000000;
+    border-color: #000000;
+    color: #ffffff;
     transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   }
 
   /* Input */
