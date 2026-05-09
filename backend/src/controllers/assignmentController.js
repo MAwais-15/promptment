@@ -1,12 +1,12 @@
-const Assignment   = require('../models/Assignment')
-const User         = require('../models/User')
+const Assignment = require('../models/Assignment')
+const User = require('../models/User')
 const { Notification } = require('../models/Notification')
 const { Conversation } = require('../models/Chat')
 const asyncHandler = require('../middleware/async');
 const { AppError } = require('../middleware/errorHandler');
 const { logActivity } = require('../utils/activityLogger')
 const { runAIValidation } = require('../utils/aiValidation')
-const cloudinary   = require('../config/cloudinary')
+const cloudinary = require('../config/cloudinary')
 
 // ─── Helper: push notification ────────────────────────────
 const notify = async (recipientId, type, title, message, link = null, data = {}) => {
@@ -24,24 +24,25 @@ exports.createAssignment = asyncHandler(async (req, res, next) => {
   // Build assignment data
   const data = {
     title, description, category, type,
-    budget:   Number(budget),
+    budget: Number(budget),
+    executorPayout: Number(budget) * 0.95, // 5% platform fee
     deadline: new Date(deadline),
-    student:  req.user._id,
+    student: req.user._id,
   }
 
   if (type === 'physical') {
     if (!city || !university) return next(new AppError('City and university are required for physical assignments.', 400))
-    data.city       = city
+    data.city = city
     data.university = university
   }
 
   // Handle file uploads
   if (req.files && req.files.length > 0) {
     data.attachments = req.files.map(f => ({
-      name:     f.originalname,
-      url:      f.path,
+      name: f.originalname,
+      url: f.path,
       publicId: f.filename,
-      size:     f.size,
+      size: f.size,
       mimeType: f.mimetype,
     }))
   }
@@ -49,13 +50,13 @@ exports.createAssignment = asyncHandler(async (req, res, next) => {
   const assignment = await Assignment.create(data)
 
   await logActivity({
-    actor:       req.user._id,
-    actorName:   req.user.name,
-    action:      'Assignment Posted',
-    target:      assignment.title,
-    targetId:    assignment._id,
+    actor: req.user._id,
+    actorName: req.user.name,
+    action: 'Assignment Posted',
+    target: assignment.title,
+    targetId: assignment._id,
     targetModel: 'Assignment',
-    type:        'success',
+    type: 'success',
   })
 
   res.status(201).json({ success: true, assignment })
@@ -70,7 +71,7 @@ exports.getAssignments = asyncHandler(async (req, res) => {
 
   const query = { status }
 
-  if (type)     query.type     = type
+  if (type) query.type = type
   if (category) query.category = category
 
   if (minBudget || maxBudget) {
@@ -88,18 +89,20 @@ exports.getAssignments = asyncHandler(async (req, res) => {
       ]
     }
   } else {
-    if (city)       query.city       = new RegExp(city, 'i')
+    if (city) query.city = new RegExp(city, 'i')
     if (university) query.university = new RegExp(university, 'i')
   }
 
-  const skip  = (Number(page) - 1) * Number(limit)
+  const pageNum = Math.max(1, Number(page) || 1)
+  const limitNum = Math.max(1, Number(limit) || 12)
+  const skip = (pageNum - 1) * limitNum
   const total = await Assignment.countDocuments(query)
 
   const assignments = await Assignment.find(query)
     .populate('student', 'name avatar rating city university')
     .sort(sort)
     .skip(skip)
-    .limit(Number(limit))
+    .limit(limitNum)
 
   res.json({
     success: true,
@@ -116,14 +119,16 @@ exports.getMyAssignments = asyncHandler(async (req, res) => {
   const query = { student: req.user._id }
   if (status) query.status = status
 
-  const skip  = (Number(page) - 1) * Number(limit)
+  const pageNum = Math.max(1, Number(page) || 1)
+  const limitNum = Math.max(1, Number(limit) || 20)
+  const skip = (pageNum - 1) * limitNum
   const total = await Assignment.countDocuments(query)
 
   const assignments = await Assignment.find(query)
     .populate('executor', 'name avatar rating')
     .sort('-createdAt')
     .skip(skip)
-    .limit(Number(limit))
+    .limit(limitNum)
 
   res.json({ success: true, total, assignments })
 })
@@ -131,8 +136,8 @@ exports.getMyAssignments = asyncHandler(async (req, res) => {
 // ─── GET /api/assignments/:id ─────────────────────────────
 exports.getAssignment = asyncHandler(async (req, res, next) => {
   const assignment = await Assignment.findById(req.params.id)
-    .populate('student',    'name avatar rating city university')
-    .populate('executor',   'name avatar rating completedAssignments')
+    .populate('student', 'name avatar rating city university')
+    .populate('executor', 'name avatar rating completedAssignments')
     .populate('applicants.executor', 'name avatar rating')
 
   if (!assignment) return next(new AppError('Assignment not found.', 404))
@@ -159,15 +164,15 @@ exports.applyForAssignment = asyncHandler(async (req, res, next) => {
   // Physical: check location match
   if (assignment.type === 'physical') {
     const cityMatch = assignment.city?.toLowerCase() === req.user.city?.toLowerCase()
-    const uniMatch  = assignment.university?.toLowerCase() === req.user.university?.toLowerCase()
+    const uniMatch = assignment.university?.toLowerCase() === req.user.university?.toLowerCase()
     if (!cityMatch || !uniMatch) {
       return next(new AppError('You must be in the same city and university for physical assignments.', 403))
     }
   }
 
   assignment.applicants.push({
-    executor:  req.user._id,
-    message:   req.body.message || '',
+    executor: req.user._id,
+    message: req.body.message || '',
     appliedAt: new Date(),
   })
   await assignment.save()
@@ -206,12 +211,12 @@ exports.acceptExecutor = asyncHandler(async (req, res, next) => {
   if (!applied) return next(new AppError('This executor has not applied.', 400))
 
   assignment.executor = executorId
-  assignment.status   = 'accepted'
+  assignment.status = 'accepted'
   await assignment.save()
 
   // Create conversation
   await Conversation.create({
-    assignment:   assignment._id,
+    assignment: assignment._id,
     participants: [assignment.student, executorId],
   })
 
@@ -269,14 +274,14 @@ exports.submitWork = asyncHandler(async (req, res, next) => {
   }
 
   assignment.submittedFiles = req.files.map(f => ({
-    name:     f.originalname,
-    url:      f.path,
+    name: f.originalname,
+    url: f.path,
     publicId: f.filename,
-    size:     f.size,
+    size: f.size,
     mimeType: f.mimetype,
   }))
   assignment.submittedAt = new Date()
-  assignment.status      = 'completed'
+  assignment.status = 'completed'
 
   // ── Run AI validation asynchronously ──────────────────
   runAIValidation(assignment).catch(err =>
@@ -305,26 +310,28 @@ exports.approveWork = asyncHandler(async (req, res, next) => {
   if (!assignment) return next(new AppError('Assignment not found.', 404))
 
   const isStudent = assignment.student.toString() === req.user._id.toString()
-  const isAdmin   = req.user.role === 'admin'
+  const isAdmin = req.user.role === 'admin'
   if (!isStudent && !isAdmin) return next(new AppError('Not authorized.', 403))
 
   if (assignment.status !== 'completed') {
     return next(new AppError('Assignment must be completed before approval.', 400))
   }
 
-  assignment.status        = 'approved'
-  assignment.escrowReleased  = true
+  assignment.status = 'approved'
+  assignment.escrowReleased = true
   assignment.escrowReleasedAt = new Date()
   await assignment.save()
+
+  const payout = assignment.executorPayout || (assignment.budget * 0.95);
 
   // Release escrow — credit executor wallet
   if (assignment.executor) {
     await User.findByIdAndUpdate(assignment.executor, {
       $inc: {
-        walletBalance:       assignment.executorPayout,
-        totalEarned:         assignment.executorPayout,
+        walletBalance: payout,
+        totalEarned: payout,
         completedAssignments: 1,
-        ongoingAssignments:  -1,
+        ongoingAssignments: -1,
       },
     })
 
@@ -338,17 +345,17 @@ exports.approveWork = asyncHandler(async (req, res, next) => {
 
     const io = req.app.get('io')
     io?.to(`user_${assignment.executor}`).emit('payment_released', {
-      assignmentId:  assignment._id,
-      amount:        assignment.executorPayout,
+      assignmentId: assignment._id,
+      amount: payout,
     })
   }
 
   await logActivity({
-    actor:    req.user._id,
-    actorName:req.user.name,
-    action:   'Assignment Approved',
-    target:   assignment.title,
-    type:     'success',
+    actor: req.user._id,
+    actorName: req.user.name,
+    action: 'Assignment Approved',
+    target: assignment.title,
+    type: 'success',
   })
 
   res.json({ success: true, message: 'Assignment approved and payment released.', assignment })
@@ -360,13 +367,13 @@ exports.rejectWork = asyncHandler(async (req, res, next) => {
   if (!assignment) return next(new AppError('Assignment not found.', 404))
 
   const isStudent = assignment.student.toString() === req.user._id.toString()
-  const isAdmin   = req.user.role === 'admin'
+  const isAdmin = req.user.role === 'admin'
   if (!isStudent && !isAdmin) return next(new AppError('Not authorized.', 403))
 
-  assignment.status          = 'accepted' // revert to in-progress
+  assignment.status = 'accepted' // revert to in-progress
   assignment.rejectionReason = req.body.reason || 'Work did not meet requirements.'
-  assignment.submittedFiles  = []
-  assignment.submittedAt     = null
+  assignment.submittedFiles = []
+  assignment.submittedAt = null
   await assignment.save()
 
   await notify(
@@ -400,16 +407,16 @@ exports.deleteAssignment = asyncHandler(async (req, res, next) => {
   if (!assignment) return next(new AppError('Assignment not found.', 404))
 
   const isOwner = assignment.student.toString() === req.user._id.toString()
-  const isAdmin  = req.user.role === 'admin'
+  const isAdmin = req.user.role === 'admin'
   if (!isOwner && !isAdmin) return next(new AppError('Not authorized.', 403))
 
-  if (['inprogress', 'completed', 'approved'].includes(assignment.status)) {
-    return next(new AppError('Cannot delete an active or completed assignment.', 400))
+  if (['accepted', 'inprogress', 'completed', 'approved'].includes(assignment.status)) {
+    return next(new AppError('Cannot delete an accepted, active or completed assignment.', 400))
   }
 
   // Delete cloudinary files
   for (const att of assignment.attachments) {
-    if (att.publicId) cloudinary.uploader.destroy(att.publicId).catch(() => {})
+    if (att.publicId) cloudinary.uploader.destroy(att.publicId).catch(() => { })
   }
 
   await assignment.deleteOne()

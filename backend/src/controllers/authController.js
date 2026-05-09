@@ -1,4 +1,4 @@
-﻿const asyncHandler = require("express-async-handler");
+const asyncHandler = require("express-async-handler");
 const AppError = require('../utils/AppError');
 const crypto = require('crypto')
 const jwt    = require('jsonwebtoken')
@@ -23,9 +23,12 @@ const sendTokenResponse = (user, statusCode, res) => {
 exports.register = asyncHandler(async (req, res, next) => {
   const { name, email, password, role, city, university, referralCode } = req.body
 
-  // prevent admin self-registration
+  // prevent admin self-registration and invalid roles
   if (role === 'admin') {
     return next(new AppError('Cannot register as admin.', 403))
+  }
+  if (role && !['student', 'executor'].includes(role)) {
+    return next(new AppError('Invalid role specified.', 400))
   }
 
   const existing = await User.findOne({ email })
@@ -142,6 +145,10 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 // â”€â”€â”€ POST /api/auth/reset-password â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 exports.resetPassword = asyncHandler(async (req, res, next) => {
   const { token, password } = req.body
+
+  if (!token) {
+    return next(new AppError('Reset token is required.', 400))
+  }
 
   const hashed = crypto.createHash('sha256').update(token).digest('hex')
   const user   = await User.findOne({
