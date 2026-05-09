@@ -393,7 +393,7 @@ function RolesCTA() {
 
           {/* Executor Card */}
           <div className="glass-card p-8 relative overflow-hidden group">
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
                  style={{ background: 'radial-gradient(circle at 30% 70%, rgba(168,85,247,0.1), transparent 70%)' }} />
             <Briefcase size={40} className="mb-6 text-violet-400" />
             <h3 className="font-display font-bold text-2xl mb-3" style={{ color: 'var(--text-primary)' }}>
@@ -411,7 +411,7 @@ function RolesCTA() {
               ))}
             </ul>
             <Link href="/auth/register?role=executor"
-                  className="inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl font-display font-semibold text-sm text-white transition-all duration-300"
+                  className="relative z-10 inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl font-display font-semibold text-sm text-white transition-all duration-300"
                   style={{
                     background: 'linear-gradient(135deg, #a855f7, #7c3aed)',
                     boxShadow: '0 4px 20px rgba(168,85,247,0.4)',
