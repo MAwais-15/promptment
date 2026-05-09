@@ -1,6 +1,6 @@
 'use client'
-
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Sidebar, MobileDrawer } from '@/components/shared/Sidebar'
 import {
   LayoutDashboard, PlusCircle, BookOpen, MessageSquare,
@@ -22,14 +22,21 @@ const studentNav = [
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const { user } = useAuthStore()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!user || user.role !== 'student') {
+      router.push('/auth/login')
+    }
+  }, [user, router])
+
+  if (!user || user.role !== 'student') return null
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
       <Sidebar navItems={studentNav} role="student" />
       <MobileDrawer navItems={studentNav} role="student" open={drawerOpen} onClose={() => setDrawerOpen(false)} />
-
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
         <header className="h-16 flex items-center justify-between px-4 sm:px-6 border-b shrink-0"
                 style={{ borderColor: 'var(--border-color)', background: 'var(--bg-secondary)' }}>
           <div className="flex items-center gap-3">
@@ -54,8 +61,6 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
             </Link>
           </div>
         </header>
-
-        {/* Page Content */}
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-7xl mx-auto p-4 sm:p-6">
             {children}
