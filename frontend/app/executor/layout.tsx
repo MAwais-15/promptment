@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Sidebar, MobileDrawer } from '@/components/shared/Sidebar'
 import {
   LayoutDashboard, Search, CheckSquare, MessageSquare,
@@ -21,6 +22,15 @@ const executorNav = [
 export default function ExecutorLayout({ children }: { children: React.ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const { user } = useAuthStore()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!user || user.role !== 'executor') {
+      router.push('/auth/login')
+    }
+  }, [user, router])
+
+  if (!user || user.role !== 'executor') return null
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
